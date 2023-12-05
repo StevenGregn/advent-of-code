@@ -46,10 +46,12 @@ for r in range(rows):
                         num3 = num
                     elif dr == -1 and dc == 0:
                         num4 = num
+                    # if above then don't check diagonals
                     elif dr == 1 and dc == 1 and not num3:
                         num5 = num
                     elif dr == 1 and dc == -1 and not num3:
                         num6 = num
+                    # if below then don't check diagonals
                     elif dr == -1 and dc == 1 and not num4:
                         num7 = num
                     elif dr == -1 and dc == -1 and not num4:
@@ -57,11 +59,12 @@ for r in range(rows):
             # print(num1, num2, num3, num4, num5, num6, num7, num8)
             # if only two values  
             vals = []
-            if [num1, num2, num3, num4, num5, num6, num7, num8].count(None) == 6:
-                for num in [num1, num2, num3, num4, num5, num6, num7, num8]:
+            nums = [num1, num2, num3, num4, num5, num6, num7, num8]
+            if nums.count(None) == 6:
+                for num in nums:
                     if num != None: vals.append(num)
-            print(math.prod(vals))
-            gearNum += math.prod(vals)
+                # print(nums, math.prod(vals))
+                gearNum += math.prod(vals)
         c += 1
 print(gearNum)
                 
