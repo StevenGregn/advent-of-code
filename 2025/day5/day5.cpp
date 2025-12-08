@@ -1,59 +1,84 @@
 #include <iostream>
-#include <fstream>
 #include <vector>
-int main() {
-    std::ifstream fin("input.txt");
+#include <fstream>
+#include <string>
+#include <algorithm>
 
+/*
+
+m -> # of intervals
+
+tc : 
+sort -> o(m log m)
+merge -> o(m)
+for each id(k) binary search -> o(s)
+
+o(mlog(m) + klog(s))
+
+sc: o(m)
+
+*/
+
+int main() {
+    std::fstream fin("input.txt");
     if (!fin.is_open()) {
         std::cout << "Error opening file!" << std::endl;
         return 1;
     }
-
-    std::vector<std::vector<char>> grid;
-    std::vector<std::vector<char>> grid_copy;
-    std::string line;
-    while (fin >> line) {
-        std::vector<char> line_data;
-        for (size_t pos = 0; pos < line.size(); pos++){
-            line_data.push_back(line[pos]);
-        }
-        grid.push_back(line_data);
+    std::string line = ""; 
+    std::vector<std::pair<long long, long long>> interval;
+    while(getline(fin, line)){
+        if (line.empty()) break;
+        int dash = line.find("-");
+        long long num_one = stoll(line.substr(0, dash));
+        long long num_two = stoll(line.substr(dash + 1)); 
+        interval.emplace_back(num_one, num_two);
     }
 
-    grid_copy = grid;
+    std::sort(interval.begin(), interval.end(), [](const auto&a, const auto&b) {
+        return a.first < b.first;
+    });
 
+    // optimization -> merge intervals where possible
+    std::vector<std::pair<long long, long long>> merged;
+    for (const auto& iv : interval){
+        if (merged.empty() || merged.back().second < iv.first){
+            merged.push_back(iv);
+        } else {
+            merged.back().second = std::max(merged.back().second, iv.second);
+        }
+    }
 
-    int m = grid.size();
-    int n = grid[0].size();
-    int ans = 0;
-    std::vector<std::pair<int, int>> directions = {{1,0}, {-1,0}, {0,1}, {0,-1}, {1,1}, {-1,1}, {1,-1}, {-1,-1}};
-    int prev_ans = ans;
-    do{
-        prev_ans = ans;
-        for (int i = 0; i < m; i++){
-            for (int j = 0; j < n; j++){
-                if (grid[i][j] == '@'){
-                    int adj_count = 0;
-                    for (std::pair p:directions){
+    int p1 = 0;
+    long long p2 = 0;
 
-                        int dr = p.first + i;
-                        int dc = p.second + j;
+    for (const auto& vi: merged){
+        p2 += vi.second - vi.first + 1;
+    }
 
-                        if (dr >= 0 && dr < m && dc >= 0 && dc < n && grid[dr][dc] == '@') {
-                            adj_count++;
-                        }
-                        
-                    }
-                    if (adj_count < 4) {
-                        ans++;
-                        grid_copy[i][j] = '.';
-                    }
-                }
+    while(getline(fin, line)){
+        long long ingredient_id = stoll(line);
+        long lo = 0, hi = merged.size() - 1;
+        // optimization -> binary search to find the bad ingredient
+        while (lo <= hi){
+            long mid = (lo + hi) / 2;
+            if (ingredient_id < merged[mid].first) hi = mid - 1;
+            else if (ingredient_id > merged[mid].second) lo = mid + 1;
+            else { 
+                p1++;
+                break;
             }
         }
-        grid = grid_copy;
-    }while (prev_ans < ans);
-    
-    std::cout << ans << std::endl;
+        // for (size_t i = 0; i < interval.size(); i++){
+        //     if (ingredient_id >= interval[i].first && ingredient_id <= interval[i].second){
+        //         ans++;
+        //         break;
+        //     }
+        // }
+    }
+
+    std::cout << p1 << std::endl;
+    // 231560780 -> too low
+    std::cout << p2 << std::endl;
     return 0;
 }
